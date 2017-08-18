@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NDN visualization</title>
+
+    <meta charset="UTF-8">
+
+    <script src="/js/GoJS/release/go.js"></script>
+
+
+
+    <script>
+
+
+       var Itext = [];
+       var Dtext = [];
+       var a=new Array();
+
+
+
+
+
+       function init() {
+
+            loadXMLDoc();
+            var $ = go.GraphObject.make;
+         // for conciseness in defining templates
+            myDiagram =
+                $(go.Diagram, "myDiagramDiv",  // must name or refer to the DIV HTML element
+                    {
+                        initialContentAlignment: go.Spot.Center,
+                        allowDelete: false,
+                        allowCopy: false,
+                        layout: $(go.ForceDirectedLayout),
+                        "undoManager.isEnabled": true
+                    });
+            // define several shared Brushes
+             bluegrad = $(go.Brush, "Linear", { 0: "rgb(150, 150, 250)", 0.5: "rgb(86, 86, 186)", 1: "rgb(86, 86, 186)" });
+             greengrad = $(go.Brush, "Linear", { 0: "rgb(158, 209, 159)", 1: "rgb(67, 101, 56)" });
+             redgrad = $(go.Brush, "Linear", { 0: "rgb(206, 106, 100)", 1: "rgb(180, 56, 50)" });
+             yellowgrad = $(go.Brush, "Linear", { 0: "rgb(254, 221, 50)", 1: "rgb(254, 182, 50)" });
+             lightgrad = $(go.Brush, "Linear", { 1: "#E6E6FA", 0: "#FFFAF0" });
+            // the template for each attribute in a node's array of item data
+            var itemTempl =
+                $(go.Panel, "Horizontal",
+                    $(go.Shape,
+                        { desiredSize: new go.Size(10, 10) },
+                        new go.Binding("figure", "figure"),
+                        new go.Binding("fill", "color")),
+                    $(go.TextBlock,
+                        { stroke: "#333333",
+                            font: "bold 14px sans-serif" },
+                        new go.Binding("text", "name"))
+                );
+            // define the Node template, representing an entity
+           myDiagram.nodeTemplate =
+               $(go.Node, "Auto",  // the whole node panel
+                   { selectionAdorned: true,
+                       resizable: true,
+                       layoutConditions: go.Part.LayoutStandard & ~go.Part.LayoutNodeSized,
+                       fromSpot: go.Spot.AllSides,
+                       toSpot: go.Spot.AllSides,
+                       isShadowed: true,
+                       shadowColor: "#C5C1AA" },
+                   new go.Binding("location", "location").makeTwoWay(),
+                   // whenever the PanelExpanderButton changes the visible property of the "LIST" panel,
+                   // clear out any desiredSize set by the ResizingTool.
+                   new go.Binding("desiredSize", "visible", function(v) { return new go.Size(NaN, NaN); }).ofObject("LIST"),
+                   // define the node's outer shape, which will surround the Table
+                   $(go.Shape, "RoundedRectangle",
+                       { fill: lightgrad, stroke: "#756875", strokeWidth: 3 }),
+                   $(go.Panel, "Table",
+                       { margin: 8, stretch: go.GraphObject.Fill },
+                       $(go.RowColumnDefinition, { row: 0, sizing: go.RowColumnDefinition.None }),
+                       // the table header
+                       $(go.TextBlock,
+                           {
+                               row: 0, alignment: go.Spot.Center,
+                               margin: new go.Margin(0, 14, 0, 2),  // leave room for Button
+                               font: "bold 16px sans-serif"
+                           },
+                           new go.Binding("text", "key")),
+                       // the collapse/expand button
+                       $("PanelExpanderButton", "LIST",  // the name of the element whose visibility this button toggles
+                           { row: 0, alignment: go.Spot.TopRight }),
+                       // the list of Panels, each showing an attribute
+                       $(go.Panel, "Vertical",
+                           {
+                               name: "LIST",
+                               row: 1,
+                               padding: 3,
+                               alignment: go.Spot.TopLeft,
+                               defaultAlignment: go.Spot.Left,
+                               stretch: go.GraphObject.Horizontal,
+                               itemTemplate: itemTempl
+                           },
+                           new go.Binding("itemArray", "items"))
+                   )  // end Table Panel
+               );  // end Node
+            // define the Link template, representing a relationship
+           myDiagram.linkTemplate =
+               $(go.Link,
+                   $(go.Shape),  // the link shape
+                   $(go.Shape,   // the arrowhead
+                       { toArrow: "RoundedTriangle", fill: "yellow" }),
+                   $(go.TextBlock,  // the "from" label
+                       new go.Binding("text", "text"))
+
+               );
+            // create the model for the E-R diagram
+
+            var nodeDataArray = [
+                { key: "AS",
+                    items: [ { name: "Type:", iskey: true, figure: "Decision", color: yellowgrad },
+                        { name: "", iskey: false, figure: "Cube1", color: bluegrad }
+                    ] },
+                { key: "Device1",
+                    items: [ { name: "", iskey: true, figure: "Decision", color: yellowgrad },
+                        { name: "", iskey: false, figure: "Cube1", color: bluegrad }
+                       ] },
+                { key: "Device2",
+                    items: [ { name:"", iskey: true, figure: "Decision", color: yellowgrad },
+                        { name: "", iskey: false, figure: "Cube1", color: bluegrad }] },
+                { key: "Device3",
+                    items: [ { name: "", iskey: true, figure: "Decision", color: yellowgrad },
+                        { name: "", iskey: false, figure: "Cube1", color: bluegrad }] }
+            ];
+            var linkDataArray = [
+                { from: "", to: "" ,text: ""},
+                { from: "", to: "", text: ""},
+                { from: "", to: "", text: ""}
+
+            ];
+
+            myDiagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
+            myDiagram.model.undoManager.isEnabled = true;
+
+
+
+
+
+
+
+
+
+
+
+
+           myDiagram2 =
+               $(go.Diagram, "myDiagramDiv2",  // must name or refer to the DIV HTML element
+                   {
+                       initialContentAlignment: go.Spot.Center,
+                       allowDelete: false,
+                       allowCopy: false,
+                       layout: $(go.ForceDirectedLayout),
+                       "undoManager.isEnabled": true
+                   });
+
+
+
+           myDiagram2.nodeTemplate =
+               $(go.Node, "Auto",  // the Shape will go around the TextBlock
+                   $(go.Shape, "RoundedRectangle", { strokeWidth: 0},
+                       // Shape.fill is bound to Node.data.color
+                       new go.Binding("fill", "color")),
+                   $(go.TextBlock,
+                       { margin: 8 },  // some room around the text
+                       // TextBlock.text is bound to Node.data.key
+                       new go.Binding("text", "key"))
+               );
+
+           // but use the default Link template, by not setting Diagram.linkTemplate
+
+           // create the model data that will be represented by Nodes and Links
+           myDiagram2.model.nodeDataArray =
+               [
+                   { key: "AS", color: "lightblue" },
+                   { key: "Device1", color: "orange" },
+                   { key: "Device2", color: "lightgreen" },
+                   { key: "Device3", color: "pink" }
+               ];
+           myDiagram2.linkTemplate =
+               $(go.Link,  // the whole link panel
+                   {
+                       selectionAdorned: true,
+                       layerName: "Foreground",
+                       reshapable: true,
+                       routing: go.Link.None,
+                       corner: 5,
+                       curve: go.Link.JumpOver
+                   },
+                   $(go.Shape,  // the link shape
+                       { stroke: "#303B45", strokeWidth: 2.5 }),
+                   $(go.TextBlock,  // the "from" label
+                       new go.Binding("text", "text"))
+
+               );
+
+           myDiagram2.model.linkDataArray = [
+               { from: "", to: "", text: "" },
+               { from: "Hub", to: "Device2", text: "", toText: "" },
+               { from: "Hub", to: "Device3", text: "", toText: "" }
+
+           ];
+
+           myDiagram2.model = new go.GraphLinksModel(myDiagram2.model.nodeDataArray , myDiagram2.model.linkDataArray );
+           myDiagram2.model.undoManager.isEnabled = true;
+
+
+            load();
+
+
+
+
+
+        }
+       function success(text) {
+
+           var res = text.split("\n");
+           for(var i=a.length;i<res.length;i++){
+               a.unshift(res[i]);
+           }
+
+
+
+
+       }
+
+       function loadXMLDoc()//ajax发送请求并显示
+       {
+           var xmlhttp = new XMLHttpRequest();
+
+           xmlhttp.onreadystatechange=function()
+           {
+               if (xmlhttp.readyState==4 && xmlhttp.status==200)
+               {
+                   return success(xmlhttp.responseText);
+               }
+           }
+           xmlhttp.open("get",'/ndn/ndn-cxx/build/examples/dump_tee.txt',false);
+           xmlhttp.send();
+
+       }
+       var Noa = 0;
+       function load(){
+           loadXMLDoc();
+           var data;
+
+           myDiagram.model.startTransaction("increment");
+
+           Dtext = a.pop().split(" ");
+           Noa = Noa + 1;
+
+           if(Dtext[0]==='1'){
+
+
+               data = myDiagram.model.nodeDataArray[0];
+           myDiagram.model.setDataProperty(data, "items", [ { name: "Interest Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[1], iskey: false, figure: "Cube1", color: bluegrad } ]);
+                data = myDiagram.model.linkDataArray[0];
+
+           myDiagram.model.setDataProperty(data, "from", "AS");
+           myDiagram.model.setDataProperty(data, "text", "Interest");
+           myDiagram.model.setDataProperty(data, "to", "Device1");
+
+           }
+           if(Dtext[0]==='2'){
+               data = myDiagram.model.nodeDataArray[1];
+               myDiagram.model.setDataProperty(data, "items", [ { name: "Data Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[1], iskey: false, figure: "Cube1", color: bluegrad } ]);
+               data = myDiagram.model.linkDataArray[0];
+               myDiagram.model.setDataProperty(data, "to", "AS");
+               myDiagram.model.setDataProperty(data, "text", "Data");
+               myDiagram.model.setDataProperty(data, "from", "Device1");
+           }
+
+
+
+           myDiagram.model.commitTransaction("increment");
+           myDiagram2.model.startTransaction("increment1");
+           if(Noa ===5 ){
+
+               data = myDiagram2.model.linkDataArray[0];
+               myDiagram2.model.setDataProperty(data, "to", "AS");
+               myDiagram2.model.setDataProperty(data, "text", "trusted");
+               myDiagram2.model.setDataProperty(data, "from", "Device1");
+           }
+           myDiagram2.model.commitTransaction("increment1");
+           setTimeout("load()", 3000);
+
+
+
+
+
+       }
+
+
+    </script>
+</head>
+<body onload="init()" >
+
+        <div id="myDiagramDiv" style="background-color: white; left:100px;top:0px; width: 1500px; height: 500px;position: absolute"></div>
+
+        <div id="myDiagramDiv2" style="background-color: white; left:100px;top:500px; width: 1500px; height: 500px;position: absolute"></div>
+
+
+
+
+
+</body>
+</html>
