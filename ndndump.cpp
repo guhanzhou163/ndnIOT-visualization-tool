@@ -175,7 +175,7 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) cons
   if (!isOk) {
     // if packet is incomplete, we will not be able to process it
     if (payloadSize > 0) {
-  
+
     }
     return;
   }
@@ -227,7 +227,7 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) cons
     else if (netPacket.type() == tlv::Data) {
       Data data(netPacket);
       if (matchesFilter(data.getName())) {
-        std::cout << " 2 " << data.getName()<<" ";
+        std::cout << " 2 " << data.getName()<<<< std::endl;
 
       }
     }
