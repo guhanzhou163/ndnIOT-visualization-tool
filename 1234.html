@@ -246,36 +246,68 @@
        function load(){
            loadXMLDoc();
            var data;
-
+           var nodeNo;
+           var linkNo;
            myDiagram.model.startTransaction("increment");
 
            Dtext = a.pop().split(" ");
            Noa = Noa + 1;
 
-           if(Dtext[0]==='1'){
+           switch(Dtext[0])
+           {
+               case "192.168.0.0":
+                   Dtext[0] = "AS"
+                   linkNo = 0;
 
-
-               data = myDiagram.model.nodeDataArray[0];
-           myDiagram.model.setDataProperty(data, "items", [ { name: "Interest Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[1], iskey: false, figure: "Cube1", color: bluegrad } ]);
-                data = myDiagram.model.linkDataArray[0];
-
-           myDiagram.model.setDataProperty(data, "from", "AS");
-           myDiagram.model.setDataProperty(data, "text", "Interest");
-           myDiagram.model.setDataProperty(data, "to", "Device1");
+                   break;
+               case "192.168.0.1":
+                   Dtext[1] = "Device1";
+                   linkNo = 1;
+                   break;
+               default:
 
            }
-           if(Dtext[0]==='2'){
-               data = myDiagram.model.nodeDataArray[1];
-               myDiagram.model.setDataProperty(data, "items", [ { name: "Data Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[1], iskey: false, figure: "Cube1", color: bluegrad } ]);
+           switch(Dtext[1])
+           {
+               case "192.168.0.0":
+                   Dtext[1] = "AS"
+                   break;
+               case "192.168.0.1":
+                   Dtext[1] = "Device1";
+                   break;
+               default:
+
+           }
+
+
+           if(Dtext[2]==='1'){
+
+
+
+                data = myDiagram.model.nodeDataArray[linkNo];
+           myDiagram.model.setDataProperty(data, "items", [ { name: "Interest Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[3], iskey: false, figure: "Cube1", color: bluegrad } ]);
+
+           data = myDiagram.model.linkDataArray[0];
+
+           myDiagram.model.setDataProperty(data, "from", Dtext[0]);
+           myDiagram.model.setDataProperty(data, "text", "Interest");
+           myDiagram.model.setDataProperty(data, "to", Dtext[1]);
+
+           }
+           if(Dtext[2]==='2'){
+               data = myDiagram.model.nodeDataArray[linkNo];
+
+               myDiagram.model.setDataProperty(data, "items", [ { name: "Data Name", iskey: true, figure: "Decision", color: yellowgrad }, { name: Dtext[3], iskey: false, figure: "Cube1", color: bluegrad } ]);
                data = myDiagram.model.linkDataArray[0];
                myDiagram.model.setDataProperty(data, "to", "AS");
                myDiagram.model.setDataProperty(data, "text", "Data");
                myDiagram.model.setDataProperty(data, "from", "Device1");
+
            }
 
 
-
            myDiagram.model.commitTransaction("increment");
+
            myDiagram2.model.startTransaction("increment1");
            if(Noa ===5 ){
 
@@ -285,6 +317,7 @@
                myDiagram2.model.setDataProperty(data, "from", "Device1");
            }
            myDiagram2.model.commitTransaction("increment1");
+
            setTimeout("load()", 3000);
 
 
