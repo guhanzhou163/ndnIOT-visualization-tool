@@ -175,7 +175,7 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) cons
   if (!isOk) {
     // if packet is incomplete, we will not be able to process it
     if (payloadSize > 0) {
-      std::cout << os.str() << ", " << "INCOMPLETE-PACKET" << ", size: " << payloadSize << std::endl;
+  
     }
     return;
   }
@@ -217,19 +217,18 @@ Ndndump::onCapturedPacket(const pcap_pkthdr* header, const uint8_t* packet) cons
           lp::Nack nack(interest);
           nack.setHeader(lpPacket.get<lp::NackField>());
 
-          std::cout<< "2 " << std::endl;
+          std::cout<< " 0 " << std::endl;
         }
         else {
-          std::cout<<interest.getName()<< std::endl;
+          std::cout<<" 1 "<<interest.getName()<< std::endl;
         }
       }
     }
     else if (netPacket.type() == tlv::Data) {
       Data data(netPacket);
       if (matchesFilter(data.getName())) {
-        std::cout << "1 " << data.getName()<<" ";
-        std::cout << data.getSignature().getValue().value_size()<<" ";
-        std::cout << data.getSignature().getType() << std::endl;
+        std::cout << " 2 " << data.getName()<<" ";
+
       }
     }
     else {
@@ -335,8 +334,8 @@ Ndndump::skipAndProcessFrameHeader(int frameType,
         return -1;
       }
 
-      /*os << "From: " << inet_ntoa(ipHeader->ip_src) << ", ";
-      os << "To: "   << inet_ntoa(ipHeader->ip_dst);*/
+      os << inet_ntoa(ipHeader->ip_src) << " ";
+      os << inet_ntoa(ipHeader->ip_dst);
 
       payloadSize -= ipHeaderSize;
       payload += ipHeaderSize;
